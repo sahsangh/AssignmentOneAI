@@ -21,9 +21,13 @@ def repeated_backward_astar(maze, start, goal, tie_breaking='smaller_g'):
         g_score = {goal: 0}
         f_score = {goal: heuristic(goal, start)}
         expanded_cells = 0
+        closed_set = set()
 
         while open_set:
             _, current = heapq.heappop(open_set)
+            if current in closed_set:
+                continue
+            closed_set.add(current)
             expanded_cells += 1
 
             if current == start:
@@ -34,6 +38,9 @@ def repeated_backward_astar(maze, start, goal, tie_breaking='smaller_g'):
                     continue
 
                 tentative_g_score = g_score[current] + 1
+
+                if neighbor in closed_set:
+                    continue
 
                 if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
                     came_from[neighbor] = current

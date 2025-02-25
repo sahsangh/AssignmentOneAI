@@ -79,15 +79,14 @@ def visualize_maze(maze, path, title):
 if __name__ == "__main__":
     # Small test case
     maze = np.array([
-        [0, 0, 0, 0, 0, -1],
-        [-1, -1, -1, -1, 0, -1],
-        [0, 0, 0, -1, 0, -1],
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, -1, -1, -1],
-        [0, 0, 0, 0, 0, 0]
+        [0, 0, 0, 0, 0],
+        [0,0, -1, 0, 0],
+        [0,0, -1, -1, 0],
+        [0,0, -1, -1, 0],
+        [0,0, 0, -1, 0]
     ])
-    start = (0, 0)
-    goal = (5, 5)
+    start = (4, 1)
+    goal = (4,4)
 
     path, expanded_cells = repeated_forward_astar(maze, start, goal, tie_breaking='larger_g')
     print(f"Path: {path}")

@@ -34,9 +34,11 @@ def adaptive_astar(maze, start, goal, h_values, tie_breaking='smaller_g'):
             _, current = heapq.heappop(open_set)
             expanded_cells += 1
 
+
             if current == goal:
                 return reconstruct_path(came_from, current), expanded_cells, g_score
-
+            if current in closed_set:
+                continue
             closed_set.add(current)
 
             for neighbor in get_neighbors(*current):
