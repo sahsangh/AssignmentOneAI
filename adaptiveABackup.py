@@ -40,7 +40,7 @@ def adaptive_astar(maze, start, goal, h_values, tie_breaking='smaller_g'):
             closed_set.add(current)
 
             for neighbor in get_neighbors(*current):
-                if maze[neighbor[0], neighbor[1]] == -1:  # Blocked cell
+                if neighbor in closed_set or maze[neighbor[0], neighbor[1]] == -1:  # Blocked cell
                     continue
 
                 tentative_g_score = g_score[current] + 1
