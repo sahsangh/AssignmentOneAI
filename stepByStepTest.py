@@ -52,9 +52,8 @@ def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
                     print(f"  Adding neighbor: {neighbor}, f: {f_score[neighbor]}, g: {g_score[neighbor]}")
 
             # Visualize the current state of the maze and path
-            if expanded_cells % 1 == 0:
-                current_path = reconstruct_path(came_from, current)
-                visualize_maze(maze, current_path, f'Step {expanded_cells}')
+            current_path = reconstruct_path(came_from, current)
+            visualize_maze(maze, current_path, f'Step {expanded_cells}')
 
         return None, expanded_cells
 
