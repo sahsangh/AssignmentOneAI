@@ -92,13 +92,10 @@ if __name__ == "__main__":
 
         visualize_maze(maze, smaller_g_result[0], f'Path with Smaller g-values (gridworld_{i})')
         visualize_maze(maze, larger_g_result[0], f'Path with Larger g-values (gridworld_{i})')
-        test_maze = np.array([
-        [0, 0, 0, 0, 0, -1],
-        [-1, -1, -1, -1, 0, -1],
-        [0, 0, 0, -1, 0, -1],
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, -1, -1, -1],
-        [0, 0, 0, 0, 0, 0]
-    ])
-        x, y = repeated_forward_astar(test_maze, start, (5,5), tie_breaking='larger_g')
-        visualize_maze(test_maze, x, "Test")
+    test = np.load("test_maze.npy")
+    start = (0,0)
+    goal = (100,100)
+    path, expanded_cells = repeated_forward_astar(test, start, goal, tie_breaking='larger_g')
+    print(f"Path: {path}")
+    print(f"Expanded cells: {expanded_cells}")
+    visualize_maze(test, path, "Path with Larger g-values (test_maze)")

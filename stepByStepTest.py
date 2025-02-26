@@ -40,6 +40,7 @@ def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
 
                 tentative_g_score = g_score[current] + 1
 
+                print(f"  Neighbor: {neighbor}, tentative_g: {tentative_g_score}, g: {g_score.get(neighbor, None)}")
                 if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
                     came_from[neighbor] = current
                     g_score[neighbor] = tentative_g_score
@@ -51,9 +52,9 @@ def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
                     print(f"  Adding neighbor: {neighbor}, f: {f_score[neighbor]}, g: {g_score[neighbor]}")
 
             # Visualize the current state of the maze and path
-            current_path = reconstruct_path(came_from, current)
-            visualize_maze(maze, current_path, f'Step {expanded_cells}')
-            time.sleep(0.5)  # Pause to visualize each step
+            if expanded_cells % 1 == 0:
+                current_path = reconstruct_path(came_from, current)
+                visualize_maze(maze, current_path, f'Step {expanded_cells}')
 
         return None, expanded_cells
 
@@ -79,14 +80,19 @@ def visualize_maze(maze, path, title):
 if __name__ == "__main__":
     # Small test case
     maze = np.array([
-        [0, 0, 0, 0, 0],
-        [0,0, -1, 0, 0],
-        [0,0, -1, -1, 0],
-        [0,0, -1, -1, 0],
-        [0,0, 0, -1, 0]
-    ])
-    start = (4, 1)
-    goal = (4,4)
+    [ 0,  0,  0,  0,  0,  0],
+    [-1,  0, -1,  0,  0,  0],
+    [-1,  0, -1,  0, -1,  0],
+    [-1,  0, -1,  0, -1,  0],
+    [-1,  0,  0,  0, -1,  0],
+    [-1,  0,  0, -1, -1, -1],
+    [-1, -1, -1, -1, -1,  0]
+])
+    filename = f"gridWorlds/gridworld_38.npy"
+    test_maze = np.load(filename)
+
+    start = (0,0)
+    goal = (100,100)
 
     path, expanded_cells = repeated_forward_astar(maze, start, goal, tie_breaking='larger_g')
     print(f"Path: {path}")
