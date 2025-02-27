@@ -1,7 +1,6 @@
 import heapq
 import numpy as np
 import matplotlib.pyplot as plt
-import time
 
 def heuristic(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
@@ -42,7 +41,6 @@ def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
 
                 tentative_g_score = g_score[current] + 1
 
-                print(f"  Neighbor: {neighbor}, tentative_g: {tentative_g_score}, g: {g_score.get(neighbor, None)}")
                 if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
                     came_from[neighbor] = current
                     g_score[neighbor] = tentative_g_score
@@ -52,10 +50,6 @@ def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
                         priority = 1000 * f_score[neighbor] - g_score[neighbor]
                     heapq.heappush(open_set, (priority, neighbor))
                     print(f"  Adding neighbor: {neighbor}, f: {f_score[neighbor]}, g: {g_score[neighbor]}")
-
-            # Visualize the current state of the maze and path
-            current_path = reconstruct_path(came_from, current)
-            visualize_maze(maze, current_path, f'Step {expanded_cells}')
 
         return None, expanded_cells
 
@@ -166,4 +160,4 @@ if __name__ == "__main__":
     print(f"Path: {path}")
     print(f"Expanded cells: {expanded_cells}")
 
-    visualize_maze(maze, path, 'Final Path')
+    visualize_maze(maze, path, 'Step-by-Step A* Path')

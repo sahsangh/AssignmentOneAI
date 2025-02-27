@@ -35,15 +35,8 @@ def generate_maze(width, height):
                 stack.append(next_cell)
             visited.add(next_cell)
 
-    # Start DFS from a random cell
     start_x, start_y = random.randint(0, width - 1), random.randint(0, height - 1)
     dfs(start_x, start_y)
-
-    # Ensure all cells are visited
-    for y in range(height):
-        for x in range(width):
-            if (x, y) not in visited:
-                dfs(x, y)
 
     return maze
 
@@ -56,26 +49,13 @@ def load_maze(filename):
     return np.load(filename)
 
 def visualize_maze(maze):
-    plt.imshow(maze, cmap='magma')
+    plt.imshow(maze, cmap='gray')
     plt.show()
-
-def generate_test_map(width, height):
-    maze = np.ones((height, width), dtype=int)  # Start with all cells unblocked
-
-    # Block the three surrounding squares to the bottom right corner
-    if width > 1 and height > 1:
-        maze[height - 1, width - 2] = -1  # Block left of bottom right corner
-        maze[height - 2, width - 1] = -1  # Block above bottom right corner
-        maze[height - 2, width - 2] = -1  # Block diagonal to bottom right corner
-    return maze
-
-
-
 
 if __name__ == "__main__":
     num_mazes = 50
     width, height = 101, 101
-    filename_prefix = "gridWorlds/gridworld"
+    filename_prefix = "gridworld"
 
     save_mazes(num_mazes, width, height, filename_prefix)
 
