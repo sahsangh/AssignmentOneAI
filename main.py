@@ -55,7 +55,7 @@ def visualize_maze(maze):
 if __name__ == "__main__":
     num_mazes = 50
     width, height = 101, 101
-    filename_prefix = "gridworld"
+    filename_prefix = "gridWorlds/gridworld"
 
     save_mazes(num_mazes, width, height, filename_prefix)
 

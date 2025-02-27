@@ -5,54 +5,93 @@ import matplotlib.pyplot as plt
 def heuristic(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
-    def get_neighbors(x, y):
+def true_repeated_backward_astar(maze, start, goal, tie_breaking='larger_g'):
+    known_maze = np.zeros_like(maze)
+    current = start
+    path_taken = [current]
+    total_expanded_cells = 0
+    step_count = 0
+    
+    def get_neighbors(x, y, maze_state):
         neighbors = []
         possible_moves = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-
+        
         for nx, ny in possible_moves:
-            if 0 <= nx < maze.shape[0] and 0 <= ny < maze.shape[1] and maze[nx, ny] != -1:
+            if 0 <= nx < maze_state.shape[0] and 0 <= ny < maze_state.shape[1] and maze_state[nx, ny] != -1:
                 neighbors.append((nx, ny))
         
         return neighbors
-
-    def astar(start, goal):
-        if maze[start[0], start[1]] == -1:
-            return [], 0
+    
+    def observe_surroundings(real_maze, known_maze, position):
+        x, y = position
+        for nx, ny in [(x, y), (x-1, y), (x+1, y), (x, y-1), (x, y+1)]:
+            if 0 <= nx < real_maze.shape[0] and 0 <= ny < real_maze.shape[1]:
+                known_maze[nx, ny] = real_maze[nx, ny]
+    
+    def astar(start, goal, maze_state):
+        if maze_state[start[0], start[1]] == -1:
+            return None, 0
+        
+        max_g = maze_state.shape[0] * maze_state.shape[1]
+        c = max_g + 1 
+        
         open_set = []
-        heapq.heappush(open_set, (0, start))
         came_from = {}
         g_score = {start: 0}
         f_score = {start: heuristic(start, goal)}
+        
+        # Calculate priority based on tie-breaking strategy
+        if tie_breaking == 'larger_g':
+            # For larger g-values: c * f(s) - g(s)
+            priority = (c * f_score[start] - g_score[start], start)
+        else:  # smaller_g
+            # For smaller g-values: (f(s), g(s))
+            priority = (f_score[start], g_score[start], start)
+            
+        heapq.heappush(open_set, priority)
+        
+        closed_set = set()
         expanded_cells = 0
-
+        
         while open_set:
-            _, current = heapq.heappop(open_set)
+            if tie_breaking == 'larger_g':
+                priority_val, current = heapq.heappop(open_set)
+            else:  # smaller_g
+                _, _, current = heapq.heappop(open_set)
+            
+            if current in closed_set:
+                continue
+                
+            closed_set.add(current)
             expanded_cells += 1
-
-            print(f"Expanding node: {current}, f: {f_score[current]}, g: {g_score[current]}")
-
+            
             if current == goal:
-                return reconstruct_path(came_from, current), expanded_cells
-
-            for neighbor in get_neighbors(*current):
-                if maze[neighbor[0], neighbor[1]] == -1:  # Check if the cell is not blocked
-                    continue
-
+                path = reconstruct_path(came_from, current)
+                return path, expanded_cells
+            
+            for neighbor in get_neighbors(*current, maze_state):
                 tentative_g_score = g_score[current] + 1
-
+                
+                if neighbor in closed_set:
+                    continue
+                    
                 if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
                     came_from[neighbor] = current
                     g_score[neighbor] = tentative_g_score
                     f_score[neighbor] = tentative_g_score + heuristic(neighbor, goal)
-                    priority = f_score[neighbor]
+                    
+                    # Calculate priority based on tie-breaking strategy
                     if tie_breaking == 'larger_g':
-                        priority = 1000 * f_score[neighbor] - g_score[neighbor]
-                    heapq.heappush(open_set, (priority, neighbor))
-                    print(f"  Adding neighbor: {neighbor}, f: {f_score[neighbor]}, g: {g_score[neighbor]}")
-
+                        # For larger g-values: c * f(s) - g(s)
+                        priority = (c * f_score[neighbor] - g_score[neighbor], neighbor)
+                    else:  # smaller_g
+                        # For smaller g-values: (f(s), g(s))
+                        priority = (f_score[neighbor], g_score[neighbor], neighbor)
+                    
+                    heapq.heappush(open_set, priority)
+        
         return None, expanded_cells
-
+    
     def reconstruct_path(came_from, current):
         path = [current]
         while current in came_from:
@@ -60,75 +99,53 @@ def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
             path.append(current)
         path.reverse()
         return path
-
-    path, expanded_cells = astar(start, goal)
-    return path, expanded_cells
-
-
-def repeated_backward_astar(maze, start, goal, tie_breaking='smaller_g'):
-    def get_neighbors(x, y):
-        neighbors = []
-        if x > 0: neighbors.append((x - 1, y))
-        if x < maze.shape[0] - 1: neighbors.append((x + 1, y))
-        if y > 0: neighbors.append((x, y - 1))
-        if y < maze.shape[1] - 1: neighbors.append((x, y + 1))
-        return neighbors
-
-    def astar(start, goal):
-        if maze[goal[0], goal[1]] == -1:
-            return [], 0
-        open_set = []
-        heapq.heappush(open_set, (0, goal))
-        came_from = {}
-        g_score = {goal: 0}
-        f_score = {goal: heuristic(goal, start)}
-        expanded_cells = 0
-        closed_set = set()
-
-        while open_set:
-            _, current = heapq.heappop(open_set)
-            if current in closed_set:
-                continue
-            closed_set.add(current)
-            expanded_cells += 1
-
-            if current == start:
-                return reconstruct_path(came_from, current), expanded_cells
-
-            for neighbor in get_neighbors(*current):
-                if maze[neighbor[0], neighbor[1]] == -1:
-                    continue
-
-                tentative_g_score = g_score[current] + 1
-
-                if neighbor in closed_set:
-                    continue
-
-                if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
-                    came_from[neighbor] = current
-                    g_score[neighbor] = tentative_g_score
-                    f_score[neighbor] = tentative_g_score + heuristic(neighbor, start)
-                    priority = f_score[neighbor]
-                    if tie_breaking == 'larger_g':
-                        priority = 1000 * f_score[neighbor] - g_score[neighbor]
-                    heapq.heappush(open_set, (priority, neighbor))
-
-            # Visualize the current state of the maze and path
-            current_path = reconstruct_path(came_from, current)
-            visualize_maze(maze, current_path, f'Step {expanded_cells}')
-        return None, expanded_cells
-
-    def reconstruct_path(came_from, current):
-        path = [current]
-        while current in came_from:
-            current = came_from[current]
-            path.append(current)
-        path.reverse()
-        return path
-
-    path, expanded_cells = astar(start, goal)
-    return path, expanded_cells
-
+    
+    # Start with observing surroundings from initial position
+    observe_surroundings(maze, known_maze, current)
+    
+    while current != goal:
+        step_count += 1
+        #print(f"\nStep {step_count}: Agent at {current}")
+        
+        # Plan a path from current position to goal using current knowledge
+        planned_path, expanded = astar(current, goal, known_maze)
+        total_expanded_cells += expanded
+        
+        #print(f"Expanded {expanded} cells during planning")
+        
+        # Visualize the current step
+        visualize_step(known_maze, maze, path_taken, current, goal, planned_path, step_count)
+        
+        # If no path found, we're stuck
+        if not planned_path:
+            print("No path to goal found with current knowledge!")
+            return path_taken, total_expanded_cells
+            
+        # Move one step along the planned path
+        next_pos = planned_path[1] if len(planned_path) > 1 else current
+        
+        #print(f"Moving from {current} to {next_pos}")
+        
+        # Check if next position is actually traversable in real maze
+        if maze[next_pos[0], next_pos[1]] != -1:
+            current = next_pos
+            path_taken.append(current)
+        else:
+            # Update knowledge - mark obstacle in known maze
+            known_maze[next_pos[0], next_pos[1]] = -1
+            #print(f"Obstacle discovered at {next_pos}")
+        
+        # Observe surroundings from new position
+        observe_surroundings(maze, known_maze, current)
+    
+    print(f"\nGoal reached in {step_count} steps!")
+    print(f"Total expanded cells: {total_expanded_cells}")
+    print(f"Final path: {path_taken}")
+    
+    # Visualize the final path
+    visualize_final_path(maze, path_taken)
+    
+    return path_taken, total_expanded_cells
 
 
 def visualize_maze(maze, path, title):
@@ -139,25 +156,212 @@ def visualize_maze(maze, path, title):
     plt.title(title)
     plt.show()
 
+def visualize_step(known_maze, maze, path_taken, current, goal, planned_path, step_count):
+    """Visualize the current step of repeated forward A*"""
+    plt.figure(figsize=(12, 5))
+    
+    # Known maze
+    plt.subplot(1, 2, 1)
+    plt.imshow(known_maze, cmap='gray')
+    plt.plot([p[1] for p in path_taken], [p[0] for p in path_taken], 'bo-', linewidth=1, markersize=2)
+    plt.plot(current[1], current[0], 'go', markersize=8)  # Current position
+    plt.plot(goal[1], goal[0], 'ro', markersize=8)  # Goal position
+    plt.title(f'Known Maze - Step {step_count}')
+    
+    # Real maze
+    plt.subplot(1, 2, 2)
+    plt.imshow(maze, cmap='gray')
+    plt.plot([p[1] for p in path_taken], [p[0] for p in path_taken], 'bo-', linewidth=1, markersize=2)
+    plt.plot(current[1], current[0], 'go', markersize=8)  # Current position
+    plt.plot(goal[1], goal[0], 'ro', markersize=8)  # Goal position
+    if planned_path:
+        plt.plot([p[1] for p in planned_path], [p[0] for p in planned_path], 'y--', linewidth=1)
+    plt.title(f'Real Maze with Planned Path - Step {step_count}')
+    
+    plt.tight_layout()
+    plt.show()
+
+def visualize_final_path(maze, path_taken):
+    """Visualize the final path taken by the agent"""
+    plt.figure(figsize=(8, 6))
+    plt.imshow(maze, cmap='gray')
+    plt.plot([p[1] for p in path_taken], [p[0] for p in path_taken], 'bo-', linewidth=2, markersize=2)
+    plt.title('Final Path Taken')
+    plt.show()
+
+
+def true_repeated_forward_astar(maze, start, goal, tie_breaking='larger_g'):
+    known_maze = np.zeros_like(maze)
+    current = start
+    path_taken = [current]
+    total_expanded_cells = 0
+    step_count = 0
+    
+    def get_neighbors(x, y, maze_state):
+        neighbors = []
+        possible_moves = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+        
+        for nx, ny in possible_moves:
+            if 0 <= nx < maze_state.shape[0] and 0 <= ny < maze_state.shape[1] and maze_state[nx, ny] != -1:
+                neighbors.append((nx, ny))
+        
+        return neighbors
+    
+    def observe_surroundings(real_maze, known_maze, position):
+        x, y = position
+        for nx, ny in [(x, y), (x-1, y), (x+1, y), (x, y-1), (x, y+1)]:
+            if 0 <= nx < real_maze.shape[0] and 0 <= ny < real_maze.shape[1]:
+                known_maze[nx, ny] = real_maze[nx, ny]
+    
+    def astar(start, goal, maze_state):
+        if maze_state[start[0], start[1]] == -1:
+            return None, 0
+        
+        max_g = maze_state.shape[0] * maze_state.shape[1]
+        c = max_g + 1 
+        
+        open_set = []
+        came_from = {}
+        g_score = {start: 0}
+        f_score = {start: heuristic(start, goal)}
+        
+        # Calculate priority based on tie-breaking strategy
+        if tie_breaking == 'larger_g':
+            # For larger g-values: c * f(s) - g(s)
+            priority = (c * f_score[start] - g_score[start], start)
+        else:  # smaller_g
+            # For smaller g-values: (f(s), g(s))
+            priority = (f_score[start], g_score[start], start)
+            
+        heapq.heappush(open_set, priority)
+        
+        closed_set = set()
+        expanded_cells = 0
+        
+        while open_set:
+            if tie_breaking == 'larger_g':
+                priority_val, current = heapq.heappop(open_set)
+            else:  # smaller_g
+                _, _, current = heapq.heappop(open_set)
+            
+            if current in closed_set:
+                continue
+                
+            closed_set.add(current)
+            expanded_cells += 1
+            
+            if current == goal:
+                path = reconstruct_path(came_from, current)
+                return path, expanded_cells
+            
+            for neighbor in get_neighbors(*current, maze_state):
+                tentative_g_score = g_score[current] + 1
+                
+                if neighbor in closed_set:
+                    continue
+                    
+                if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
+                    came_from[neighbor] = current
+                    g_score[neighbor] = tentative_g_score
+                    f_score[neighbor] = tentative_g_score + heuristic(neighbor, goal)
+                    
+                    # Calculate priority based on tie-breaking strategy
+                    if tie_breaking == 'larger_g':
+                        # For larger g-values: c * f(s) - g(s)
+                        priority = (c * f_score[neighbor] - g_score[neighbor], neighbor)
+                    else:  # smaller_g
+                        # For smaller g-values: (f(s), g(s))
+                        priority = (f_score[neighbor], g_score[neighbor], neighbor)
+                    
+                    heapq.heappush(open_set, priority)
+        
+        return None, expanded_cells
+    
+    def reconstruct_path(came_from, current):
+        path = [current]
+        while current in came_from:
+            current = came_from[current]
+            path.append(current)
+        path.reverse()
+        return path
+    
+    # Start with observing surroundings from initial position
+    observe_surroundings(maze, known_maze, current)
+    
+    while current != goal:
+        step_count += 1
+        #print(f"\nStep {step_count}: Agent at {current}")
+        
+        # Plan a path from current position to goal using current knowledge
+        planned_path, expanded = astar(current, goal, known_maze)
+        total_expanded_cells += expanded
+        
+        #print(f"Expanded {expanded} cells during planning")
+        
+        # Visualize the current step
+        visualize_step(known_maze, maze, path_taken, current, goal, planned_path, step_count)
+        
+        # If no path found, we're stuck
+        if not planned_path:
+            print("No path to goal found with current knowledge!")
+            return path_taken, total_expanded_cells
+            
+        # Move one step along the planned path
+        next_pos = planned_path[1] if len(planned_path) > 1 else current
+        
+        #print(f"Moving from {current} to {next_pos}")
+        
+        # Check if next position is actually traversable in real maze
+        if maze[next_pos[0], next_pos[1]] != -1:
+            current = next_pos
+            path_taken.append(current)
+        else:
+            # Update knowledge - mark obstacle in known maze
+            known_maze[next_pos[0], next_pos[1]] = -1
+            print(f"Obstacle discovered at {next_pos}!")
+        
+        # Observe surroundings from new position
+        observe_surroundings(maze, known_maze, current)
+    
+    print(f"\nGoal reached in {step_count} steps!")
+    print(f"Total expanded cells: {total_expanded_cells}")
+    print(f"Final path: {path_taken}")
+    
+    # Visualize the final path
+    visualize_final_path(maze, path_taken)
+    
+    return path_taken, total_expanded_cells
+
+
 if __name__ == "__main__":
-    # Small test case
-    maze = np.array([
+    test_maze = np.array([
     [ 0,  0,  0,  0,  0,  0],
     [-1,  0, -1,  -1,  -1,  0],
     [-1,  0, -1,  0, -1,  0],
     [-1,  0, -1,  0, -1,  0],
     [-1,  0,  -1,  0, 0,  0],
-    [-1,  0,  -1, 0, -1, -1],
-    [-1, -1, 0, 0, 0,  0]
+    [-1,  0,  -1, -1, -1, -1],
+    [-1, 0, 0, 0, 0,  0]
 ])
-    filename = f"gridWorlds/gridworld_1.npy"
-    test_maze = np.load(filename)
+    test = np.array([
+    [ 0,  0,  0,  0,  0],
+    [0,  0, -1,  0,  0],
+    [0,  0, -1,  -1,  0],
+    [0,  0, -1,  -1,  -1],
+    [0,  0, 0,  -1,  0],
+])
 
     start = (0,0)
-    goal = (6,5)
-
-    path, expanded_cells = repeated_forward_astar(maze, start, goal, tie_breaking='larger_g')
-    print(f"Path: {path}")
-    print(f"Expanded cells: {expanded_cells}")
-
-    visualize_maze(maze, path, 'Step-by-Step A* Path')
+    goal = (test_maze.shape[0] - 1, test_maze.shape[1] - 1)
+    
+    print("Running True Repeated Forward A*...")
+    path, expanded = true_repeated_forward_astar(test_maze, start, goal)
+    path, expanded = true_repeated_backward_astar(test_maze, goal, start)
+    
+    # for i in range(50):
+    #     filename = f"gridWorlds/gridworld_{i}.npy"
+    #     maze = np.load(filename)
+    #     start = (0, 0)
+    #     goal = (maze.shape[0] - 1, maze.shape[1] - 1)
+    #     path, expanded = repeated_forward_astar(maze, start, goal)
+    #     print(f"Expanded cells: {expanded}")
