@@ -15,6 +15,8 @@ def repeated_backward_astar(maze, start, goal, tie_breaking='smaller_g'):
         return neighbors
 
     def astar(start, goal):
+        if maze[goal[0], goal[1]] == -1:
+            return [], 0
         open_set = []
         heapq.heappush(open_set, (0, goal))
         came_from = {}
@@ -81,24 +83,35 @@ def visualize_maze(maze, path, title):
     plt.title(title)
     plt.show()
 
+def analyzeBackward(expansionValues):
+    print(expansionValues)
+    print(f"{len(expansionValues)} {sum(expansionValues)}")
+    total_sum, count = 0, 0
+    for i in range(len(expansionValues)):
+        if expansionValues[i] != 0:
+            total_sum += expansionValues[i]
+            count += 1
+    print(f"Average expansion: {total_sum/count} and count: {count}")
+
 if __name__ == "__main__":
-    for i in range(5,6):
+    expansionValues = []
+    for i in range(50):
         filename = f"gridWorlds/gridworld_{i}.npy"
         maze = np.load(filename)
         start = (0, 0)
         goal = (maze.shape[0] - 1, maze.shape[1] - 1)
 
-        (smaller_g_result, larger_g_result) = compare_tie_breaking(maze, start, goal)
+        '''Larger vs Smaller Test'''
+        # (smaller_g_result, larger_g_result) = compare_tie_breaking(maze, start, goal)
+        # visualize_maze(maze, smaller_g_result[0], f'Path with Smaller g-values (gridworld_{i})')
+        # visualize_maze(maze, larger_g_result[0], f'Path with Larger g-values (gridworld_{i})')
 
-        visualize_maze(maze, smaller_g_result[0], f'Path with Smaller g-values (gridworld_{i})')
-        visualize_maze(maze, larger_g_result[0], f'Path with Larger g-values (gridworld_{i})')
-        test_maze = np.array([
-        [0, 0, 0, 0, 0, -1],
-        [-1, -1, -1, -1, 0, -1],
-        [0, 0, 0, -1, 0, -1],
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, -1, -1, -1],
-        [0, 0, 0, 0, 0, 0]
-    ])
-        x, y = repeated_backward_astar(test_maze, start, (5,5), tie_breaking='larger_g')
-        visualize_maze(test_maze, x, "Test Maze")
+        '''
+        TEST FOR FORWARD VS BACKWARD ASTAR
+        ONLY USES LARGER G VALUES FOR TIE BREAKS
+        '''
+        path_larger_g, expanded_larger_g = repeated_backward_astar(maze, start, goal, tie_breaking='larger_g')
+        #visualize_maze(maze, path_larger_g, f'Path with Larger g-values (gridworld_{i})')
+        print(f"Expanded cells: {expanded_larger_g}")
+        expansionValues.append(expanded_larger_g)
+    analyzeBackward(expansionValues)

@@ -18,6 +18,8 @@ def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
         return neighbors
 
     def astar(start, goal):
+        if maze[start[0], start[1]] == -1:
+            return [], 0
         open_set = []
         heapq.heappush(open_set, (0, start))
         came_from = {}
@@ -68,6 +70,73 @@ def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
     path, expanded_cells = astar(start, goal)
     return path, expanded_cells
 
+
+def repeated_backward_astar(maze, start, goal, tie_breaking='smaller_g'):
+    def get_neighbors(x, y):
+        neighbors = []
+        if x > 0: neighbors.append((x - 1, y))
+        if x < maze.shape[0] - 1: neighbors.append((x + 1, y))
+        if y > 0: neighbors.append((x, y - 1))
+        if y < maze.shape[1] - 1: neighbors.append((x, y + 1))
+        return neighbors
+
+    def astar(start, goal):
+        if maze[goal[0], goal[1]] == -1:
+            return [], 0
+        open_set = []
+        heapq.heappush(open_set, (0, goal))
+        came_from = {}
+        g_score = {goal: 0}
+        f_score = {goal: heuristic(goal, start)}
+        expanded_cells = 0
+        closed_set = set()
+
+        while open_set:
+            _, current = heapq.heappop(open_set)
+            if current in closed_set:
+                continue
+            closed_set.add(current)
+            expanded_cells += 1
+
+            if current == start:
+                return reconstruct_path(came_from, current), expanded_cells
+
+            for neighbor in get_neighbors(*current):
+                if maze[neighbor[0], neighbor[1]] == -1:
+                    continue
+
+                tentative_g_score = g_score[current] + 1
+
+                if neighbor in closed_set:
+                    continue
+
+                if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
+                    came_from[neighbor] = current
+                    g_score[neighbor] = tentative_g_score
+                    f_score[neighbor] = tentative_g_score + heuristic(neighbor, start)
+                    priority = f_score[neighbor]
+                    if tie_breaking == 'larger_g':
+                        priority = 1000 * f_score[neighbor] - g_score[neighbor]
+                    heapq.heappush(open_set, (priority, neighbor))
+
+            # Visualize the current state of the maze and path
+            current_path = reconstruct_path(came_from, current)
+            visualize_maze(maze, current_path, f'Step {expanded_cells}')
+        return None, expanded_cells
+
+    def reconstruct_path(came_from, current):
+        path = [current]
+        while current in came_from:
+            current = came_from[current]
+            path.append(current)
+        path.reverse()
+        return path
+
+    path, expanded_cells = astar(start, goal)
+    return path, expanded_cells
+
+
+
 def visualize_maze(maze, path, title):
     plt.imshow(maze, cmap='gray')
     if path is not None:
@@ -80,18 +149,18 @@ if __name__ == "__main__":
     # Small test case
     maze = np.array([
     [ 0,  0,  0,  0,  0,  0],
-    [-1,  0, -1,  0,  0,  0],
+    [-1,  0, -1,  -1,  -1,  0],
     [-1,  0, -1,  0, -1,  0],
     [-1,  0, -1,  0, -1,  0],
-    [-1,  0,  0,  0, -1,  0],
-    [-1,  0,  0, -1, -1, -1],
-    [-1, -1, -1, -1, -1,  0]
+    [-1,  0,  -1,  0, 0,  0],
+    [-1,  0,  -1, 0, -1, -1],
+    [-1, -1, 0, 0, 0,  0]
 ])
-    filename = f"gridWorlds/gridworld_38.npy"
+    filename = f"gridWorlds/gridworld_1.npy"
     test_maze = np.load(filename)
 
     start = (0,0)
-    goal = (100,100)
+    goal = (6,5)
 
     path, expanded_cells = repeated_forward_astar(maze, start, goal, tie_breaking='larger_g')
     print(f"Path: {path}")

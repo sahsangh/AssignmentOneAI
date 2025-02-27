@@ -15,6 +15,9 @@ def repeated_forward_astar(maze, start, goal, tie_breaking='smaller_g'):
         return neighbors
 
     def astar(start, goal):
+        if maze[start[0], start[1]] == -1:
+            return [], 0
+
         open_set = []
         heapq.heappush(open_set, (0, start))
         came_from = {}
@@ -81,21 +84,65 @@ def visualize_maze(maze, path, title):
     plt.title(title)
     plt.show()
 
+def analyzeSmallBig(expasionValuesSmall, expansionValuesLarge):
+    print(expasionValuesSmall)
+    print(expansionValuesLarge)
+    print(f"{len(expansionValuesLarge)} {sum(expansionValuesLarge)}")
+    print(f"{len(expasionValuesSmall)} {sum(expasionValuesSmall)}")
+    largeSum, largeCount  = 0, 0
+    smallSum, smallCount = 0, 0
+    for i in range(len(expasionValuesSmall)):
+        if expansionValuesLarge[i] != 0:
+            largeSum += expansionValuesLarge[i]
+            largeCount += 1
+        if expasionValuesSmall[i] != 0:
+            smallSum += expasionValuesSmall[i]
+            smallCount += 1
+    print(f"Average expansion for larger g-values: {largeSum/largeCount} and count: {largeCount}")
+    print(f"Average expansion for smaller g-values: {smallSum/smallCount} and count {smallCount}")
+    print(f"Percent Difference: {((largeSum/largeCount) - (smallSum/smallCount)) / (largeSum/largeCount) * 100}%")
+
+def analyzeForward(expansionValues):
+    print(expansionValues)
+    print(f"{len(expansionValues)} {sum(expansionValues)}")
+    total_sum, count = 0, 0
+    for i in range(len(expansionValues)):
+        if expansionValues[i] != 0:
+            total_sum += expansionValues[i]
+            count += 1
+    print(f"Average expansion: {total_sum/count} and count: {count}")
+
 if __name__ == "__main__":
-    for i in range(5,6):
+    expansionValuesLarge = []
+    expasionValuesSmall = []
+    expansionValues = []
+
+    for i in range(50):
         filename = f"gridWorlds/gridworld_{i}.npy"
         maze = np.load(filename)
         start = (0, 0)
         goal = (maze.shape[0] - 1, maze.shape[1] - 1)
+        
+        '''
+        TEST FOR FORWARD VS BACKWARD ASTAR
+        ONLY USES LARGER G VALUES FOR TIE BREAKS
+        '''
+        path_larger_g, expanded_larger_g = repeated_forward_astar(maze, start, goal, tie_breaking='larger_g')
+        visualize_maze(maze, path_larger_g, f'Path with Larger g-values (gridworld_{i})')
+        print(f"Expanded cells: {expanded_larger_g}")
+        expansionValues.append(expanded_larger_g)
 
-        (smaller_g_result, larger_g_result) = compare_tie_breaking(maze, start, goal)
 
-        visualize_maze(maze, smaller_g_result[0], f'Path with Smaller g-values (gridworld_{i})')
-        visualize_maze(maze, larger_g_result[0], f'Path with Larger g-values (gridworld_{i})')
-    test = np.load("test_maze.npy")
-    start = (0,0)
-    goal = (100,100)
-    path, expanded_cells = repeated_forward_astar(test, start, goal, tie_breaking='larger_g')
-    print(f"Path: {path}")
-    print(f"Expanded cells: {expanded_cells}")
-    visualize_maze(test, path, "Path with Larger g-values (test_maze)")
+        '''TESTING BOTH SMALLER AND LARGER G-VALUES'''
+        # (smaller_g_result, larger_g_result) = compare_tie_breaking(maze, start, goal)
+        # expasionValuesSmall.append(smaller_g_result[1])
+        # expansionValuesLarge.append(larger_g_result[1])
+        #visualize_maze(maze, smaller_g_result[0], f'Path with Smaller g-values (gridworld_{i})')
+        #visualize_maze(maze, larger_g_result[0], f'Path with Larger g-values (gridworld_{i})')
+
+
+    '''Part of SMALLER VS LARGER G-VALUES'''
+    # analyzeSmallBig(expasionValuesSmall, expansionValuesLarge)
+
+    '''Part of FORWARD VS BACKWARD ASTAR'''
+    analyzeForward(expansionValues)

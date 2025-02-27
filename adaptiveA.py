@@ -21,7 +21,9 @@ def adaptive_astar(maze, start, goal, h_values, tie_breaking='smaller_g'):
         return neighbors
 
     def astar(start, goal):
-        """Runs A* search from start to goal."""
+        if maze[start[0], start[1]] == -1:
+            return [], 0, None
+
         open_set = []
         heapq.heappush(open_set, (0, start))
         came_from = {}
@@ -104,7 +106,7 @@ def visualize_maze(maze, path, title):
 if __name__ == "__main__":
     h_values = {}  # Shared h-values across multiple searches
 
-    for i in range(5,6):
+    for i in range(9,10):
         filename = f"gridWorlds/gridworld_{i}.npy"
         maze = np.load(filename)
         start = (0, 0)
@@ -114,13 +116,3 @@ if __name__ == "__main__":
 
         visualize_maze(maze, smaller_g_result[0], f'Path with Smaller g-values (gridworld_{i})')
         visualize_maze(maze, larger_g_result[0], f'Path with Larger g-values (gridworld_{i})')
-        test_maze = np.array([
-        [0, 0, 0, 0, 0, -1],
-        [-1, -1, -1, -1, 0, -1],
-        [0, 0, 0, -1, 0, -1],
-        [0, 0, 0, 0, 0, 0],
-        [0, 0, 0, -1, -1, -1],
-        [0, 0, 0, 0, 0, 0]
-    ])
-        x, y,z = adaptive_astar(test_maze, start, (5,5), {},tie_breaking='larger_g')
-        visualize_maze(test_maze, x, "Test")
