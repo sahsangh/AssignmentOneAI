@@ -12,16 +12,16 @@ def visualize_step(known_maze, maze, path_taken, current, goal, planned_path, st
     plt.subplot(1, 2, 1)
     plt.imshow(known_maze, cmap='gray')
     plt.plot([p[1] for p in path_taken], [p[0] for p in path_taken], 'bo-', linewidth=1, markersize=2)
-    plt.plot(current[1], current[0], 'go', markersize=8)  # Current position
-    plt.plot(goal[1], goal[0], 'ro', markersize=8)  # Goal position
+    plt.plot(current[1], current[0], 'go', markersize=2)  # Current position
+    plt.plot(goal[1], goal[0], 'ro', markersize=2)  # Goal position
     plt.title(f'Known Maze - Step {step_count}')
     
     # Real maze
     plt.subplot(1, 2, 2)
     plt.imshow(maze, cmap='gray')
     plt.plot([p[1] for p in path_taken], [p[0] for p in path_taken], 'bo-', linewidth=1, markersize=2)
-    plt.plot(current[1], current[0], 'go', markersize=8)  # Current position
-    plt.plot(goal[1], goal[0], 'ro', markersize=8)  # Goal position
+    plt.plot(current[1], current[0], 'go', markersize=2)  # Current position
+    plt.plot(goal[1], goal[0], 'ro', markersize=2)  # Goal position
     if planned_path:
         plt.plot([p[1] for p in planned_path], [p[0] for p in planned_path], 'y--', linewidth=1)
     plt.title(f'Real Maze with Planned Path - Step {step_count}')
@@ -109,9 +109,9 @@ def adaptive_astar(maze, start, goal, tie_breaking='larger_g', gridNum = None):
                 for node in closed_set:
                     if node in g_score:
                         new_h = goal_g - g_score[node]
-                        old_h = h_values.get(node, abs(node[0] - goal[0]) + abs(node[1] - goal[1]))
-                        h_values[node] = max(new_h, old_h)
-                        #h_values[node] = goal_g - g_score[node]
+                        manhattan = abs(node[0] - goal[0]) + abs(node[1] - goal[1])
+                        old_h = h_values.get(node, manhattan)
+                        h_values[node] = max(old_h, new_h)
                 
                 return path, expanded_cells, g_score
             
@@ -148,7 +148,7 @@ def adaptive_astar(maze, start, goal, tie_breaking='larger_g', gridNum = None):
     
     # Start with observing surroundings from initial position
     observe_surroundings(maze, known_maze, current)
-    
+
     while current != goal:
         step_count += 1
         #print(f"\nStep {step_count}: Agent at {current}")
@@ -178,7 +178,6 @@ def adaptive_astar(maze, start, goal, tie_breaking='larger_g', gridNum = None):
         else:
             # Update knowledge - mark obstacle in known maze
             known_maze[next_pos[0], next_pos[1]] = -1
-            #print(f"Obstacle discovered at {next_pos}!")
         
         # Observe surroundings from new position
         observe_surroundings(maze, known_maze, current)
@@ -207,3 +206,9 @@ if __name__ == "__main__":
 
     print(f"Large: {sum(expansionValues)}")
     print(f"Average Large: {sum(expansionValues)/len(expansionValues)}")
+
+    # maze = np.load(f"gridWorlds/gridworld_{12}.npy")
+    # start = (1,7)
+    # goal = (48,92)
+    # path, expanded = adaptive_astar(maze, start, goal, tie_breaking='larger_g')
+    # path, expanded = adaptive_astar(maze, start, goal, tie_breaking='larger_g')
