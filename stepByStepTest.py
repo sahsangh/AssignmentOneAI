@@ -459,7 +459,7 @@ def adaptive_astar(maze, start, goal, tie_breaking='larger_g', gridNum = None):
     print(f"Final path: {path_taken}")
     
     # Visualize the final path
-    visualize_final_path(maze, path_taken, gridNum)
+    visualize_final_path(maze, path_taken)
     
     return path_taken, total_expanded_cells
 
