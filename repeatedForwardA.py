@@ -37,7 +37,7 @@ def visualize_final_path(maze, path_taken):
     plt.title('Final Path Taken')
     plt.show()
 
-def true_repeated_forward_astar(maze, start, goal, tie_breaking='larger_g'):
+def repeated_forward_astar(maze, start, goal, tie_breaking='larger_g'):
     known_maze = np.zeros_like(maze)
     current = start
     path_taken = [current]
@@ -194,16 +194,16 @@ if __name__ == "__main__":
         
 
         '''TESTING PRIORITIZING LARGE VS SMALL G-VALUES'''
-        # path, expanded = true_repeated_forward_astar(maze, start, goal)
+        # path, expanded = repeated_forward_astar(maze, start, goal)
         # expansionValuesLarge.append(expanded)
-        # path, expanded = true_repeated_forward_astar(maze, start, goal, "smaller_g")
+        # path, expanded = repeated_forward_astar(maze, start, goal, "smaller_g")
         # expansionValuesSmall.append(expanded)
 
         '''
         TEST FOR FORWARD VS BACKWARD ASTAR
         ONLY USES LARGER G VALUES FOR TIE BREAKS
         '''
-        path, expanded = true_repeated_forward_astar(maze, start, goal)
+        path, expanded = repeated_forward_astar(maze, start, goal)
         expansionValuesLarge.append(expanded)
 
     
@@ -215,6 +215,7 @@ if __name__ == "__main__":
     '''TESTING FOR FORWARD VS BACKWARD ASTAR'''
     print(f"Large: {sum(expansionValuesLarge)}")
     print(f"Average Large: {sum(expansionValuesLarge)/len(expansionValuesLarge)}")
+
 
 
 

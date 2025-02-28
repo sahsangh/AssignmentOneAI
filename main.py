@@ -65,6 +65,8 @@ if __name__ == "__main__":
     #     visualize_maze(maze)
     # maze = load_maze(f"{filename_prefix}_0.npy")
     # visualize_maze(maze)
+
+    #TEST CASE WITH ONLY THREE CORNERS BLOCKED
     # blocked = generate_test_map(101, 101)
     # np.save("test_maze.npy", blocked)
     # visualize_maze(blocked)

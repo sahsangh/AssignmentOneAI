@@ -207,8 +207,11 @@ if __name__ == "__main__":
     print(f"Large: {sum(expansionValues)}")
     print(f"Average Large: {sum(expansionValues)/len(expansionValues)}")
 
-    # maze = np.load(f"gridWorlds/gridworld_{12}.npy")
-    # start = (1,7)
-    # goal = (48,92)
-    # path, expanded = adaptive_astar(maze, start, goal, tie_breaking='larger_g')
-    # path, expanded = adaptive_astar(maze, start, goal, tie_breaking='larger_g')
+
+    '''Test running adaptive A* multiple times on one maze to see improvement over time'''
+    maze = np.load(f"gridWorlds/multipleAdaptiveA.npy")
+    start = (1,7)
+    goal = (48,92)
+    h_values.clear()
+    path, expanded = adaptive_astar(maze, start, goal, tie_breaking='larger_g')
+    path, expanded = adaptive_astar(maze, start, goal, tie_breaking='larger_g')
