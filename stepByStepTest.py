@@ -491,11 +491,11 @@ if __name__ == "__main__":
     
 
 
-    # full_maze = np.load("gridWorlds/multipleAdaptiveA.npy")
-    # goal = (full_maze.shape[0] - 1, full_maze.shape[1] - 1)
+    full_maze = np.load("gridWorlds/multipleAdaptiveA.npy")
+    goal = (full_maze.shape[0] - 1, full_maze.shape[1] - 1)
+    # path, expanded = adaptive_astar(full_maze, start, goal)
     # path, expanded = repeated_forward_astar(full_maze, start, goal)
     # path, expanded = repeated_backward_astar(full_maze, goal, start)
-    # path, expanded = adaptive_astar(full_maze, start, goal)
 
     # for i in range(50):
     #     filename = f"gridWorlds/gridworld_{i}.npy"
