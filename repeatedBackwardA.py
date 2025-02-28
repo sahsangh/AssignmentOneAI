@@ -72,12 +72,10 @@ def repeated_backward_astar(maze, start, goal, tie_breaking='larger_g'):
         g_score = {start: 0}
         f_score = {start: heuristic(start, goal)}
         
-        # Calculate priority based on tie-breaking strategy
         if tie_breaking == 'larger_g':
-            # For larger g-values: c * f(s) - g(s)
+            # c * f(s) - g(s)
             priority = (c * f_score[start] - g_score[start], start)
-        else:  # smaller_g
-            # For smaller g-values: (f(s), g(s))
+        else: 
             priority = (f_score[start], g_score[start], start)
             
         heapq.heappush(open_set, priority)
@@ -88,7 +86,7 @@ def repeated_backward_astar(maze, start, goal, tie_breaking='larger_g'):
         while open_set:
             if tie_breaking == 'larger_g':
                 priority_val, current = heapq.heappop(open_set)
-            else:  # smaller_g
+            else:
                 _, _, current = heapq.heappop(open_set)
             
             if current in closed_set:
@@ -112,12 +110,10 @@ def repeated_backward_astar(maze, start, goal, tie_breaking='larger_g'):
                     g_score[neighbor] = tentative_g_score
                     f_score[neighbor] = tentative_g_score + heuristic(neighbor, goal)
                     
-                    # Calculate priority based on tie-breaking strategy
                     if tie_breaking == 'larger_g':
-                        # For larger g-values: c * f(s) - g(s)
+                        #c * f(s) - g(s)
                         priority = (c * f_score[neighbor] - g_score[neighbor], neighbor)
-                    else:  # smaller_g
-                        # For smaller g-values: (f(s), g(s))
+                    else: 
                         priority = (f_score[neighbor], g_score[neighbor], neighbor)
                     
                     heapq.heappush(open_set, priority)
@@ -132,14 +128,14 @@ def repeated_backward_astar(maze, start, goal, tie_breaking='larger_g'):
         path.reverse()
         return path
     
-    # Start with observing surroundings from initial position
+    # Initial observation
     observe_surroundings(maze, known_maze, current)
     
     while current != goal:
         step_count += 1
         #print(f"\nStep {step_count}: Agent at {current}")
         
-        # Plan a path from current position to goal using current knowledge
+        # Plan Path from current to goal
         planned_path, expanded = astar(current, goal, known_maze)
         total_expanded_cells += expanded
         
@@ -148,22 +144,20 @@ def repeated_backward_astar(maze, start, goal, tie_breaking='larger_g'):
         # Visualize the current step
         #visualize_step(known_maze, maze, path_taken, current, goal, planned_path, step_count)
         
-        # If no path found, we're stuck
         if not planned_path:
-            print("No path to goal found with current knowledge!")
+            print("No path to goal found")
             return path_taken, total_expanded_cells
             
-        # Move one step along the planned path
+        # Move to next position
         next_pos = planned_path[1] if len(planned_path) > 1 else current
         
         #print(f"Moving from {current} to {next_pos}")
         
-        # Check if next position is actually traversable in real maze
         if maze[next_pos[0], next_pos[1]] != -1:
             current = next_pos
             path_taken.append(current)
         else:
-            # Update knowledge - mark obstacle in known maze
+            # Update known maze 
             known_maze[next_pos[0], next_pos[1]] = -1
             print(f"Obstacle discovered at {next_pos}!")
         

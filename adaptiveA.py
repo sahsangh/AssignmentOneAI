@@ -77,7 +77,6 @@ def adaptive_astar(maze, start, goal, tie_breaking='larger_g', gridNum = None):
         g_score = {start: 0}
         f_score = {start: g_score[start] + adaptive_heuristic(start, goal)}
         
-        # Calculate priority based on tie-breaking strategy
         if tie_breaking == 'larger_g':
             priority = (c * f_score[start] - g_score[start], start)
         else: 
@@ -103,8 +102,6 @@ def adaptive_astar(maze, start, goal, tie_breaking='larger_g', gridNum = None):
             if current == goal:
                 path = reconstruct_path(came_from, current)
                 
-                # Update heuristic values for all expanded nodes
-                # h'(s) = g*(goal) - g*(s)
                 goal_g = g_score[goal]
                 for node in closed_set:
                     if node in g_score:
@@ -126,12 +123,9 @@ def adaptive_astar(maze, start, goal, tie_breaking='larger_g', gridNum = None):
                     g_score[neighbor] = tentative_g_score
                     f_score[neighbor] = tentative_g_score + adaptive_heuristic(neighbor, goal)
                     
-                    # Calculate priority based on tie-breaking strategy
                     if tie_breaking == 'larger_g':
-                        # For larger g-values: c * f(s) - g(s)
                         priority = (c * f_score[neighbor] - g_score[neighbor], neighbor)
-                    else:  # smaller_g
-                        # For smaller g-values: (f(s), g(s))
+                    else: 
                         priority = (f_score[neighbor], g_score[neighbor], neighbor)
                     
                     heapq.heappush(open_set, priority)
@@ -146,14 +140,12 @@ def adaptive_astar(maze, start, goal, tie_breaking='larger_g', gridNum = None):
         path.reverse()
         return path
     
-    # Start with observing surroundings from initial position
     observe_surroundings(maze, known_maze, current)
 
     while current != goal:
         step_count += 1
         #print(f"\nStep {step_count}: Agent at {current}")
         
-        # Plan a path from current position to goal using current knowledge and updated heuristics
         planned_path, expanded, g_scores = astar(current, goal, known_maze)
         total_expanded_cells += expanded
         
@@ -166,20 +158,17 @@ def adaptive_astar(maze, start, goal, tie_breaking='larger_g', gridNum = None):
             print("No path to goal found with current knowledge!")
             return path_taken, total_expanded_cells
             
-        # Move one step along the planned path
         next_pos = planned_path[1] if len(planned_path) > 1 else current
         
         #print(f"Moving from {current} to {next_pos}")
         
-        # Check if next position is actually traversable in real maze
         if maze[next_pos[0], next_pos[1]] != -1:
             current = next_pos
             path_taken.append(current)
         else:
-            # Update knowledge - mark obstacle in known maze
+            # Update known maze
             known_maze[next_pos[0], next_pos[1]] = -1
         
-        # Observe surroundings from new position
         observe_surroundings(maze, known_maze, current)
     
     print(f"\nGoal reached in {step_count} steps!")
